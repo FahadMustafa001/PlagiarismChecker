@@ -2,26 +2,26 @@
 {% block content %}
 <div class="container py-2 animate-fade-in">
     <!-- Hero Section -->
-    <div class="text-center mb-5 pb-4 border-bottom border-secondary">
-        <div class="brand-icon text-white rounded-3 p-3 d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
-            <i class="bi bi-cpu-fill fs-3 text-glow-primary"></i>
+    <div class="text-center mb-5 pb-4 border-bottom border-secondary-subtle">
+        <div class="brand-icon text-white rounded-3 p-3 d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.35); box-shadow: 0 0 25px rgba(59, 130, 246, 0.25);">
+            <i class="bi bi-cpu-fill fs-3 text-glow-primary text-primary"></i>
         </div>
         <h1 class="fw-bold text-white mb-2" style="font-family: 'Space Grotesk', sans-serif; font-size: 2.4rem;">
             ApexAudit <span class="text-primary text-glow-primary">AI</span>
         </h1>
-        <p class="text-muted mx-auto" style="max-width: 600px;">
+        <p class="text-muted mx-auto small" style="max-width: 600px;">
             Professional-grade academic integrity analysis platform powered by advanced NLP, neural embeddings, and cloud LLM inference.
         </p>
         <div class="d-flex justify-content-center gap-3 mt-4">
             {% if session.get('user_id') %}
-            <a href="{{ url_for('upload_assignment') }}" class="btn btn-primary px-4 py-2.5 rounded-3 border-0 fw-semibold btn-glow" style="background: var(--primary-gradient);">
+            <a href="{{ url_for('upload_assignment') }}" class="btn btn-primary px-4 py-2.5 rounded-3 border-0 fw-semibold btn-glow hover-lift" style="background: var(--primary-gradient);">
                 <i class="bi bi-cloud-upload me-1"></i> Start Scanning
             </a>
             {% else %}
-            <a href="{{ url_for('register') }}" class="btn btn-primary px-4 py-2.5 rounded-3 border-0 fw-semibold btn-glow" style="background: var(--primary-gradient);">
+            <a href="{{ url_for('register') }}" class="btn btn-primary px-4 py-2.5 rounded-3 border-0 fw-semibold btn-glow hover-lift" style="background: var(--primary-gradient);">
                 <i class="bi bi-person-plus me-1"></i> Create Account
             </a>
-            <a href="{{ url_for('login') }}" class="btn btn-outline-light px-4 py-2.5 rounded-3 fw-semibold">
+            <a href="{{ url_for('login') }}" class="btn btn-outline-light px-4 py-2.5 rounded-3 fw-semibold hover-lift">
                 <i class="bi bi-box-arrow-in-right me-1"></i> Sign In
             </a>
             {% endif %}
@@ -36,7 +36,7 @@
     <div class="row g-4 mb-5 animate-stagger">
         <!-- Feature 1 -->
         <div class="col-md-4">
-            <div class="card border border-secondary p-4 rounded-4 h-100 hover-lift tilt-3d" style="background: rgba(15, 23, 42, 0.4);">
+            <div class="card border border-secondary p-4 rounded-4 h-100 hover-lift tilt-3d" style="background: rgba(15, 23, 42, 0.4) !important;">
                 <div class="p-3 bg-primary-subtle text-primary rounded-4 d-inline-flex mb-3" style="width: fit-content;">
                     <i class="bi bi-search fs-3"></i>
                 </div>
@@ -46,7 +46,7 @@
         </div>
         <!-- Feature 2 -->
         <div class="col-md-4">
-            <div class="card border border-secondary p-4 rounded-4 h-100 hover-lift tilt-3d" style="background: rgba(15, 23, 42, 0.4);">
+            <div class="card border border-secondary p-4 rounded-4 h-100 hover-lift tilt-3d" style="background: rgba(15, 23, 42, 0.4) !important;">
                 <div class="p-3 bg-danger-subtle text-danger rounded-4 d-inline-flex mb-3" style="width: fit-content;">
                     <i class="bi bi-robot fs-3"></i>
                 </div>
@@ -56,7 +56,7 @@
         </div>
         <!-- Feature 3 -->
         <div class="col-md-4">
-            <div class="card border border-secondary p-4 rounded-4 h-100 hover-lift tilt-3d" style="background: rgba(15, 23, 42, 0.4);">
+            <div class="card border border-secondary p-4 rounded-4 h-100 hover-lift tilt-3d" style="background: rgba(15, 23, 42, 0.4) !important;">
                 <div class="p-3 rounded-4 d-inline-flex mb-3" style="width: fit-content; background: rgba(168,85,247,0.15); color: #a855f7;">
                     <i class="bi bi-cloud-arrow-up fs-3"></i>
                 </div>
@@ -66,7 +66,7 @@
         </div>
         <!-- Feature 4 -->
         <div class="col-md-4">
-            <div class="card border border-secondary p-4 rounded-4 h-100 hover-lift tilt-3d" style="background: rgba(15, 23, 42, 0.4);">
+            <div class="card border border-secondary p-4 rounded-4 h-100 hover-lift tilt-3d" style="background: rgba(15, 23, 42, 0.4) !important;">
                 <div class="p-3 bg-success-subtle text-success rounded-4 d-inline-flex mb-3" style="width: fit-content;">
                     <i class="bi bi-filetype-pdf fs-3"></i>
                 </div>
@@ -76,7 +76,7 @@
         </div>
         <!-- Feature 5 -->
         <div class="col-md-4">
-            <div class="card border border-secondary p-4 rounded-4 h-100 hover-lift tilt-3d" style="background: rgba(15, 23, 42, 0.4);">
+            <div class="card border border-secondary p-4 rounded-4 h-100 hover-lift tilt-3d" style="background: rgba(15, 23, 42, 0.4) !important;">
                 <div class="p-3 bg-warning-subtle text-warning rounded-4 d-inline-flex mb-3" style="width: fit-content;">
                     <i class="bi bi-layout-split fs-3"></i>
                 </div>
@@ -86,7 +86,7 @@
         </div>
         <!-- Feature 6 -->
         <div class="col-md-4">
-            <div class="card border border-secondary p-4 rounded-4 h-100 hover-lift tilt-3d" style="background: rgba(15, 23, 42, 0.4);">
+            <div class="card border border-secondary p-4 rounded-4 h-100 hover-lift tilt-3d" style="background: rgba(15, 23, 42, 0.4) !important;">
                 <div class="p-3 bg-info-subtle text-info rounded-4 d-inline-flex mb-3" style="width: fit-content;">
                     <i class="bi bi-graph-up-arrow fs-3"></i>
                 </div>
@@ -97,36 +97,36 @@
     </div>
 
     <!-- Supported Formats -->
-    <div class="card border border-secondary p-4 rounded-4 mb-4" style="background: rgba(15, 23, 42, 0.3);">
-        <h5 class="fw-bold text-white mb-3"><i class="bi bi-file-earmark-check me-2 text-primary"></i>Supported File Formats</h5>
+    <div class="card border border-secondary p-4 rounded-4 mb-4" style="background: rgba(15, 23, 42, 0.3) !important;">
+        <h5 class="fw-bold text-white mb-3" style="font-family: 'Space Grotesk', sans-serif;"><i class="bi bi-file-earmark-check me-2 text-primary"></i>Supported File Formats</h5>
         <div class="d-flex flex-wrap gap-3">
-            <span class="tech-badge"><i class="bi bi-filetype-pdf"></i> PDF</span>
-            <span class="tech-badge"><i class="bi bi-filetype-docx"></i> DOCX</span>
-            <span class="tech-badge"><i class="bi bi-filetype-txt"></i> TXT</span>
-            <span class="tech-badge"><i class="bi bi-input-cursor-text"></i> Direct Text Paste</span>
+            <span class="tech-badge"><i class="bi bi-filetype-pdf text-danger"></i> PDF</span>
+            <span class="tech-badge"><i class="bi bi-filetype-docx text-primary"></i> DOCX</span>
+            <span class="tech-badge"><i class="bi bi-filetype-txt text-success"></i> TXT</span>
+            <span class="tech-badge"><i class="bi bi-input-cursor-text text-warning"></i> Direct Text Paste</span>
         </div>
     </div>
 
     <!-- Detection Methodology -->
-    <div class="card border border-secondary p-4 rounded-4" style="background: rgba(15, 23, 42, 0.3);">
-        <h5 class="fw-bold text-white mb-3"><i class="bi bi-diagram-3 me-2 text-primary"></i>Detection Methodology</h5>
+    <div class="card border border-secondary p-4 rounded-4" style="background: rgba(15, 23, 42, 0.3) !important;">
+        <h5 class="fw-bold text-white mb-3" style="font-family: 'Space Grotesk', sans-serif;"><i class="bi bi-diagram-3 me-2 text-primary"></i>Detection Methodology</h5>
         <div class="row g-3">
             <div class="col-md-6">
-                <h6 class="fw-semibold text-white"><i class="bi bi-shield-check me-1 text-primary"></i> Plagiarism Engines</h6>
+                <h6 class="fw-semibold text-white mb-2.5"><i class="bi bi-shield-check me-1 text-primary"></i> Plagiarism Engines</h6>
                 <ul class="text-muted small mb-0" style="list-style: none; padding-left: 0;">
-                    <li class="mb-1"><i class="bi bi-check2 text-success me-1"></i> Sentence-Transformers (all-MiniLM-L6-v2) semantic embeddings</li>
-                    <li class="mb-1"><i class="bi bi-check2 text-success me-1"></i> TF-IDF vectorization with cosine similarity</li>
-                    <li class="mb-1"><i class="bi bi-check2 text-success me-1"></i> Live DuckDuckGo web scraping verification</li>
+                    <li class="mb-1.5"><i class="bi bi-check2 text-success me-1"></i> Sentence-Transformers (all-MiniLM-L6-v2) semantic embeddings</li>
+                    <li class="mb-1.5"><i class="bi bi-check2 text-success me-1"></i> TF-IDF vectorization with cosine similarity</li>
+                    <li class="mb-1.5"><i class="bi bi-check2 text-success me-1"></i> Live DuckDuckGo web scraping verification</li>
                     <li><i class="bi bi-check2 text-success me-1"></i> Cloud LLM paraphrase detection (Groq / OpenRouter)</li>
                 </ul>
             </div>
             <div class="col-md-6">
-                <h6 class="fw-semibold text-white"><i class="bi bi-fingerprint me-1" style="color:#a855f7;"></i> AI Detection Signals</h6>
+                <h6 class="fw-semibold text-white mb-2.5"><i class="bi bi-fingerprint me-1" style="color:#a855f7;"></i> AI Detection Signals</h6>
                 <ul class="text-muted small mb-0" style="list-style: none; padding-left: 0;">
-                    <li class="mb-1"><i class="bi bi-check2 text-success me-1"></i> Sentence length burstiness (std deviation)</li>
-                    <li class="mb-1"><i class="bi bi-check2 text-success me-1"></i> Transition word density analysis</li>
-                    <li class="mb-1"><i class="bi bi-check2 text-success me-1"></i> Vocabulary richness (Type-Token Ratio)</li>
-                    <li class="mb-1"><i class="bi bi-check2 text-success me-1"></i> Sentence opener diversity scoring</li>
+                    <li class="mb-1.5"><i class="bi bi-check2 text-success me-1"></i> Sentence length burstiness (std deviation)</li>
+                    <li class="mb-1.5"><i class="bi bi-check2 text-success me-1"></i> Transition word density analysis</li>
+                    <li class="mb-1.5"><i class="bi bi-check2 text-success me-1"></i> Vocabulary richness (Type-Token Ratio)</li>
+                    <li class="mb-1.5"><i class="bi bi-check2 text-success me-1"></i> Sentence opener diversity scoring</li>
                     <li><i class="bi bi-check2 text-success me-1"></i> Word length uniformity metrics</li>
                 </ul>
             </div>

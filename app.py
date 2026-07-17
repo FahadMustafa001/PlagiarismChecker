@@ -26,7 +26,7 @@ from fpdf import FPDF
 
 # Load environment variables from .env file
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(override=True)
 
 # Download NLTK requirements quietly
 nltk.download('punkt', quiet=True)
@@ -224,6 +224,22 @@ def auto_web_search(text_chunks):
                                 candidates.append({"raw_href": href, "snippet": snippet})
         except Exception as e:
             print(f"Web Search Query Error for '{query}': {e}")
+            
+    # 4. Try Wikipedia Search API as a robust bot-free fallback
+    if not candidates:
+        for query in queries[:2]:
+            try:
+                wiki_url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={requests.utils.quote(query)}&utf8=&format=json"
+                r = requests.get(wiki_url, headers=headers, timeout=5)
+                if r.status_code == 200:
+                    data = r.json()
+                    for item in data.get("query", {}).get("search", [])[:3]:
+                        title = item["title"]
+                        snippet = re.sub(r'<[^>]*>', '', item.get("snippet", ""))
+                        page_url = f"https://en.wikipedia.org/wiki/{requests.utils.quote(title.replace(' ', '_'))}"
+                        candidates.append({"raw_href": page_url, "snippet": snippet})
+            except Exception as e:
+                print(f"Wikipedia search fallback failed: {e}")
             
     # Process and clean candidates
     valid_candidates = [] # list of {"url": cleaned_url, "snippet": snippet_text}
@@ -519,7 +535,7 @@ def extract_json_array_from_text(text):
     return text
 
 def analyze_text_with_llm(content, external_results, api_provider, api_key):
-    """Calls Groq or OpenRouter for sentence-by-sentence analysis."""
+    """Calls Groq, Cerebras, OpenRouter, or a Dual Consensus ensemble of Groq+Cerebras."""
     content_sentences = sent_tokenize(content)
     if not content_sentences:
         return 0.0, 0.0, [], [], "Unknown"
@@ -535,113 +551,293 @@ def analyze_text_with_llm(content, external_results, api_provider, api_key):
         doc_str += f"Sentence {idx+1}: {s}\n"
 
     system_prompt = (
-        "You are an advanced academic integrity auditor. You evaluate documents for plagiarism and AI generation.\n"
-        "Analyze the document sentence-by-sentence and return a JSON list of results.\n"
-        "For each sentence, output exactly:\n"
-        "- 'text': the exact sentence string.\n"
-        "- 'plagiarism_score': 0-100 score indicating if it was paraphrased or copied from the Web Sources.\n"
-        "- 'is_plagiarized': boolean (true if plagiarism_score > 70).\n"
-        "- 'matched_url': the URL of the matching source (or null).\n"
-        "- 'matched_text': the matching text snippet (or null).\n"
-        "- 'ai_score': 0-100 probability of AI generation based on stylometrics.\n"
-        "- 'explanation': brief explanation (max 15 words).\n\n"
-        "Return ONLY a raw JSON array. Do NOT wrap it in ```json blocks."
+        "You are an Elite Academic Integrity Audit Agent trained at the caliber of Turnitin and advanced stylometric analysis systems.\n"
+        "Your task is to conduct a sentence-by-sentence audit of the provided Document, comparing it with the Web Sources, and return a clean, un-encapsulated JSON array of results.\n\n"
+        "Strict Auditing Guidelines:\n"
+        "1. Plagiarism Auditing Rubric:\n"
+        "   - Lexical Match (90-100%): Direct copying of phrases or sentences with zero or minimal lexical shifts (abbreviations/punctuation changes).\n"
+        "   - Syntactic Paraphrase (50-89%): Patchwriting or active-to-passive conversions where semantic concepts match a Web Source closely.\n"
+        "   - Original (0-49%): Genuine independent scholarly analysis or novel sentence structure.\n"
+        "2. AI-Generation Stylometrics Rubric:\n"
+        "   - Synthesized Pattern (80-100%): Low burstiness, flat perplexity, repetitive sentence patterns, or high density of typical AI discourse markers (e.g., 'Furthermore', 'It is important to note').\n"
+        "   - Scholarly Writing (0-49%): Diverse sentence structures, high vocabulary uniqueness (Type-Token Ratio), and natural linguistic flow.\n"
+        "3. Audit Explanations:\n"
+        "   - Explanations MUST be highly professional and technical (e.g., 'Lexical overlap with source 1', 'Syntactic patchwriting detected', 'Uniform perplexity / transition density'). Do NOT write generic conversational replies.\n\n"
+        "Few-Shot Training Case 1 (Plagiarized):\n"
+        "Input:\n"
+        "  Web Sources: [SOURCE 1] URL: example.com/paper - Content: Photosynthesis is the process by which green plants use sunlight to synthesize nutrients from carbon dioxide and water.\n"
+        "  Document: Sentence 1: Photosynthesis is the process where green plants use sunlight to synthesize food from CO2 and water.\n"
+        "Output (JSON):\n"
+        "  [\n"
+        "    {\n"
+        "      \"text\": \"Photosynthesis is the process where green plants use sunlight to synthesize food from CO2 and water.\",\n"
+        "      \"plagiarism_score\": 92.0,\n"
+        "      \"is_plagiarized\": true,\n"
+        "      \"matched_url\": \"example.com/paper\",\n"
+        "      \"matched_text\": \"Photosynthesis is the process by which green plants use sunlight to synthesize nutrients from carbon dioxide and water.\",\n"
+        "      \"ai_score\": 12.0,\n"
+        "      \"explanation\": \"Lexical overlap with source 1; minor noun abbreviations used.\"\n"
+        "    }\n"
+        "  ]\n\n"
+        "Few-Shot Training Case 2 (AI-Generated):\n"
+        "Input:\n"
+        "  Web Sources: No online search matches found.\n"
+        "  Document: Sentence 1: Furthermore, it is important to note that the primary objectives of this study are incredibly significant.\n"
+        "Output (JSON):\n"
+        "  [\n"
+        "    {\n"
+        "      \"text\": \"Furthermore, it is important to note that the primary objectives of this study are incredibly significant.\",\n"
+        "      \"plagiarism_score\": 0.0,\n"
+        "      \"is_plagiarized\": false,\n"
+        "      \"matched_url\": null,\n"
+        "      \"matched_text\": null,\n"
+        "      \"ai_score\": 96.0,\n"
+        "      \"explanation\": \"Uniform perplexity; high-density transition word and boilerplate structures.\"\n"
+        "    }\n"
+        "  ]\n\n"
+        "Return ONLY the raw JSON array. Do NOT include markdown tags, conversational intro/outro text, or wrappers."
     )
 
     user_prompt = f"Web Sources:\n{web_sources_str}\nDocument to Analyze:\n{doc_str}"
 
-    headers = {"Content-Type": "application/json"}
-
-    if api_provider == "Groq":
-        url = "https://api.groq.com/openai/v1/chat/completions"
-        headers["Authorization"] = f"Bearer {api_key}"
-        llm_model = "llama-3.1-8b-instant"
-    else:
-        url = "https://openrouter.ai/api/v1/chat/completions"
-        headers["Authorization"] = f"Bearer {api_key}"
-        headers["HTTP-Referer"] = "http://127.0.0.1:5000"
-        headers["X-Title"] = "ApexAudit AI"
-        llm_model = "meta-llama/llama-3-8b-instruct:free"
-
-    data = {
-        "model": llm_model,
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ],
-        "temperature": 0.1
-    }
-
-    try:
-        # Increased timeout to 40 seconds to prevent early drops for longer text scans
+    # Helper function to call OpenAI-compatible completion endpoints
+    def fetch_completion(url, auth_key, model_name, extra_headers=None):
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {auth_key}"
+        }
+        if extra_headers:
+            headers.update(extra_headers)
+        data = {
+            "model": model_name,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            "temperature": 0.1
+        }
         res = requests.post(url, headers=headers, json=data, timeout=40)
         if res.status_code == 200:
-            res_json = res.json()
-            completion_text = res_json['choices'][0]['message']['content'].strip()
-            
-            # Robust JSON extraction to filter out introductory LLM responses
-            completion_text = extract_json_array_from_text(completion_text)
-            
-            sentences_report = json.loads(completion_text)
-            if isinstance(sentences_report, dict):
-                for key, val in sentences_report.items():
-                    if isinstance(val, list):
-                        sentences_report = val
+            comp_text = res.json()['choices'][0]['message']['content'].strip()
+            comp_text = extract_json_array_from_text(comp_text)
+            parsed = json.loads(comp_text)
+            if isinstance(parsed, dict):
+                for k, v in parsed.items():
+                    if isinstance(v, list):
+                        parsed = v
                         break
-            
-            if not isinstance(sentences_report, list):
-                raise ValueError("LLM response did not format as a JSON array.")
-
-            plagiarized_count = sum(1 for s in sentences_report if s.get("is_plagiarized", False) or s.get("plagiarism_score", 0) > 70)
-            overall_plag = round((plagiarized_count / len(content_sentences)) * 100, 2)
-            
-            total_ai = sum(s.get("ai_score", 0) for s in sentences_report)
-            overall_ai = round(total_ai / len(content_sentences), 2)
-
-            source_match_counts = {}
-            for s in sentences_report:
-                m_url = s.get("matched_url")
-                plag_s = s.get("plagiarism_score", 0)
-                if m_url and plag_s > 70:
-                    if m_url not in source_match_counts:
-                        source_match_counts[m_url] = []
-                    source_match_counts[m_url].append(plag_s)
-                    
-            matched_sources = []
-            for url_key, scores in source_match_counts.items():
-                matched_sources.append({
-                    "url": url_key,
-                    "match_count": len(scores),
-                    "avg_similarity": round(sum(scores) / len(scores), 2)
-                })
-            matched_sources = sorted(matched_sources, key=lambda x: x["avg_similarity"], reverse=True)
-
-            return overall_plag, overall_ai, sentences_report, matched_sources, f"{api_provider} LLM ({llm_model})"
+            if isinstance(parsed, list):
+                return parsed
+            raise ValueError("Response is not a list")
         else:
-            raise Exception(f"API returned status code {res.status_code}: {res.text}")
-    except Exception as e:
-        print(f"LLM API Error ({api_provider}): {e}. Falling back to local engines...")
-        overall_plag, detailed_sentences, matched_sources = calculate_plagiarism_detailed(
-            content, external_results, "Semantic"
-        )
-        overall_ai, ai_sentence_scores = detect_ai_generation_detailed(content)
-        
-        report_sentences = []
-        for idx, sentence in enumerate(content_sentences):
-            plag_info = detailed_sentences[idx] if idx < len(detailed_sentences) else {
-                "plagiarism_score": 0.0, "is_plagiarized": False, "matched_url": None, "matched_text": None
+            raise Exception(f"{res.status_code}: {res.text}")
+
+    # Build target requests based on configured environment keys
+    requests_to_run = []
+    
+    groq_key = os.getenv("GROQ_API_KEY")
+    cerebras_key = os.getenv("CEREBRAS_API_KEY")
+    openrouter_key = os.getenv("OPENROUTER_API_KEY")
+
+    if groq_key:
+        requests_to_run.append({
+            "name": "Groq",
+            "url": "https://api.groq.com/openai/v1/chat/completions",
+            "key": groq_key,
+            "model": "llama-3.1-8b-instant"
+        })
+    if cerebras_key:
+        requests_to_run.append({
+            "name": "Cerebras",
+            "url": "https://api.cerebras.ai/v1/chat/completions",
+            "key": cerebras_key,
+            "model": "gemma-4-31b"
+        })
+    if openrouter_key:
+        requests_to_run.append({
+            "name": "OpenRouter",
+            "url": "https://openrouter.ai/api/v1/chat/completions",
+            "key": openrouter_key,
+            "model": "openrouter/auto",
+            "extra_headers": {
+                "HTTP-Referer": "http://127.0.0.1:5000",
+                "X-Title": "ApexAudit AI"
             }
-            report_sentences.append({
-                "text": sentence,
-                "plagiarism_score": plag_info["plagiarism_score"],
-                "is_plagiarized": plag_info["is_plagiarized"],
-                "matched_url": plag_info["matched_url"],
-                "matched_text": plag_info["matched_text"],
-                "ai_score": ai_sentence_scores[idx] if idx < len(ai_sentence_scores) else 0.0,
-                "explanation": "Local S-BERT and burstiness evaluation fallback."
+        })
+
+    # Fallback to arguments key if no keys are found in environment variables
+    if not requests_to_run and api_key:
+        if api_provider == "Groq":
+            requests_to_run.append({
+                "name": "Groq",
+                "url": "https://api.groq.com/openai/v1/chat/completions",
+                "key": api_key,
+                "model": "llama-3.1-8b-instant"
             })
-            
-        return overall_plag, overall_ai, report_sentences, matched_sources, "Local S-BERT / Hybrid"
+        elif api_provider == "Cerebras":
+            requests_to_run.append({
+                "name": "Cerebras",
+                "url": "https://api.cerebras.ai/v1/chat/completions",
+                "key": api_key,
+                "model": "gemma-4-31b"
+            })
+        elif api_provider == "OpenRouter":
+            requests_to_run.append({
+                "name": "OpenRouter",
+                "url": "https://openrouter.ai/api/v1/chat/completions",
+                "key": api_key,
+                "model": "openrouter/auto",
+                "extra_headers": {
+                    "HTTP-Referer": "http://127.0.0.1:5000",
+                    "X-Title": "ApexAudit AI"
+                }
+            })
+
+    # Execute in parallel
+    results_map = {}
+    threads = []
+    
+    def worker(req):
+        try:
+            results_map[req["name"]] = fetch_completion(
+                req["url"], req["key"], req["model"], req.get("extra_headers")
+            )
+        except Exception as err:
+            print(f"Request failed for {req['name']}: {err}")
+            results_map[req["name"]] = err
+
+    for r in requests_to_run:
+        t = threading.Thread(target=worker, args=(r,))
+        t.start()
+        threads.append(t)
+
+    for t in threads:
+        t.join()
+
+    # Determine successful responses
+    success_results = {k: v for k, v in results_map.items() if isinstance(v, list)}
+    
+    # Process final consensus
+    if success_results:
+        # Check if all successful results have matching lengths
+        valid_sources = [name for name, lst in success_results.items() if len(lst) == len(content_sentences)]
+        
+        if valid_sources:
+            sentences_report = []
+            for i in range(len(content_sentences)):
+                # Average scores across all valid models
+                p_scores = [success_results[name][i].get("plagiarism_score", 0) for name in valid_sources]
+                a_scores = [success_results[name][i].get("ai_score", 0) for name in valid_sources]
+                
+                avg_p_score = round(sum(p_scores) / len(p_scores), 2)
+                avg_a_score = round(sum(a_scores) / len(a_scores), 2)
+                is_p = avg_p_score > 50
+                
+                # Pick matched URL and text from the model with highest plagiarism score for this sentence
+                highest_model = valid_sources[np.argmax(p_scores)]
+                m_url = success_results[highest_model][i].get("matched_url")
+                m_text = success_results[highest_model][i].get("matched_text")
+                
+                # Combine explanations
+                explanations = []
+                for name in valid_sources:
+                    exp = success_results[name][i].get("explanation", "").strip()
+                    if exp and exp not in ["null", "None", "Audit complete."]:
+                        explanations.append(f"[{name}]: {exp}")
+                
+                if explanations:
+                    merged_explanation = " | ".join(explanations)
+                else:
+                    merged_explanation = "Audit complete."
+                    
+                if len(merged_explanation) > 120:
+                    merged_explanation = merged_explanation[:117] + "..."
+                    
+                sentences_report.append({
+                    "text": content_sentences[i],
+                    "plagiarism_score": avg_p_score,
+                    "is_plagiarized": is_p,
+                    "matched_url": m_url,
+                    "matched_text": m_text,
+                    "ai_score": avg_a_score,
+                    "explanation": merged_explanation
+                })
+            model_used = f"Ensemble Consensus ({', '.join(valid_sources)})"
+        else:
+            # Fallback to the first success result (even if length differs, it will be padded/truncated below)
+            first_name = list(success_results.keys())[0]
+            sentences_report = success_results[first_name]
+            model_used = f"{first_name} LLM (partial match)"
+
+        # Align length to content_sentences if it differs
+        if len(sentences_report) != len(content_sentences):
+            # Pad or truncate
+            new_report = []
+            for i, sentence in enumerate(content_sentences):
+                if i < len(sentences_report):
+                    new_report.append(sentences_report[i])
+                else:
+                    new_report.append({
+                        "text": sentence,
+                        "plagiarism_score": 0.0,
+                        "is_plagiarized": False,
+                        "matched_url": None,
+                        "matched_text": None,
+                        "ai_score": 0.0,
+                        "explanation": "Audit fallback padding."
+                    })
+            sentences_report = new_report
+
+        # Compute overall stats
+        plagiarized_count = sum(1 for s in sentences_report if s.get("is_plagiarized", False) or s.get("plagiarism_score", 0) > 50)
+        overall_plag = round((plagiarized_count / len(content_sentences)) * 100, 2)
+        
+        total_ai = sum(s.get("ai_score", 0) for s in sentences_report)
+        overall_ai = round(total_ai / len(content_sentences), 2)
+
+        source_match_counts = {}
+        for s in sentences_report:
+            m_url = s.get("matched_url")
+            plag_s = s.get("plagiarism_score", 0)
+            if m_url and plag_s > 50:
+                if m_url not in source_match_counts:
+                    source_match_counts[m_url] = []
+                source_match_counts[m_url].append(plag_s)
+                
+        matched_sources = []
+        for url_key, scores in source_match_counts.items():
+            matched_sources.append({
+                "url": url_key,
+                "match_count": len(scores),
+                "avg_similarity": round(sum(scores) / len(scores), 2)
+            })
+        matched_sources = sorted(matched_sources, key=lambda x: x["avg_similarity"], reverse=True)
+
+        return overall_plag, overall_ai, sentences_report, matched_sources, model_used
+
+    # If all requests failed, fall back to local CPU
+    print("All cloud LLM requests failed. Falling back to local engines...")
+    overall_plag, detailed_sentences, matched_sources = calculate_plagiarism_detailed(
+        content, external_results, "Semantic"
+    )
+    overall_ai, ai_sentence_scores = detect_ai_generation_detailed(content)
+    
+    report_sentences = []
+    for idx, sentence in enumerate(content_sentences):
+        plag_info = detailed_sentences[idx] if idx < len(detailed_sentences) else {
+            "plagiarism_score": 0.0, "is_plagiarized": False, "matched_url": None, "matched_text": None
+        }
+        report_sentences.append({
+            "text": sentence,
+            "plagiarism_score": plag_info["plagiarism_score"],
+            "is_plagiarized": plag_info["is_plagiarized"],
+            "matched_url": plag_info["matched_url"],
+            "matched_text": plag_info["matched_text"],
+            "ai_score": ai_sentence_scores[idx] if idx < len(ai_sentence_scores) else 0.0,
+            "explanation": "Local S-BERT and burstiness evaluation fallback."
+        })
+        
+    return overall_plag, overall_ai, report_sentences, matched_sources, "Local S-BERT / Hybrid"
 
 # ---------------------- PDF Report Generator ----------------------
 def generate_pdf_report(filename, plagiarism, ai_score, model_used, scan_report, created_at=None):
@@ -864,17 +1060,27 @@ def upload_assignment():
         sid = str(session['user_id'])
         
         # Auto-resolve cloud LLM credentials from environment configurations
-        api_provider = "Groq"
-        resolved_key = os.getenv("GROQ_API_KEY")
+        groq_key = os.getenv("GROQ_API_KEY")
+        cerebras_key = os.getenv("CEREBRAS_API_KEY")
+        openrouter_key = os.getenv("OPENROUTER_API_KEY")
         
-        if not resolved_key:
-            # Fallback to OpenRouter if Groq is not configured
-            api_provider = "OpenRouter"
-            resolved_key = os.getenv("OPENROUTER_API_KEY")
-            
-        # Fallback silently to local CPU matching if no cloud keys are found
-        if not resolved_key:
+        active_providers = []
+        if groq_key: active_providers.append("Groq")
+        if cerebras_key: active_providers.append("Cerebras")
+        if openrouter_key: active_providers.append("OpenRouter")
+        
+        if len(active_providers) >= 3:
+            api_provider = "Triple Consensus (" + " + ".join(active_providers) + ")"
+            resolved_key = groq_key
+        elif len(active_providers) == 2:
+            api_provider = "Dual Consensus (" + " + ".join(active_providers) + ")"
+            resolved_key = groq_key if groq_key else cerebras_key
+        elif len(active_providers) == 1:
+            api_provider = active_providers[0]
+            resolved_key = groq_key or cerebras_key or openrouter_key
+        else:
             api_provider = "local"
+            resolved_key = ""
             
         model_type = "Semantic"  # Default local fallback matching model
         enable_web_search = request.form.get('enable_web_search', 'on')  # Checked by default
@@ -922,10 +1128,27 @@ def upload_assignment():
         if enable_web_search == 'on':
             external_reference_texts = auto_web_search(chunks)
 
-        set_progress(sid, 3, "Web search complete. Running analysis engine...", 50)
+        # 2. Database Peer Cross-Check (Student Repository Audit)
+        try:
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute("SELECT filename, content FROM assignments WHERE filename != ?", (filename,))
+            db_docs = cur.fetchall()
+            conn.close()
+            
+            for db_filename, db_content in db_docs:
+                if db_content and len(db_content.strip()) > 50:
+                    external_reference_texts.append({
+                        "url": f"Database File: {db_filename}",
+                        "text": db_content
+                    })
+        except Exception as e:
+            print("Database peer check failed:", e)
+
+        set_progress(sid, 3, "Web search and peer cross-check complete. Running analysis engine...", 50)
 
         # Dispatch matching engine
-        if api_provider in ['Groq', 'OpenRouter']:
+        if api_provider != "local":
             set_progress(sid, 4, f"Contacting {api_provider} cloud LLM...", 65)
             plagiarism_score, ai_score, report_sentences, matched_sources, model_used = analyze_text_with_llm(
                 clean_content, external_reference_texts, api_provider, resolved_key
@@ -1170,4 +1393,4 @@ def delete_assignment(assignment_id):
 
 if __name__ == '__main__':
     init_db()
-    app.run(debug=True)
+    app.run(debug=False, host='127.0.0.1', port=5000)

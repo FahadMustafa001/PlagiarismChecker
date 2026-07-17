@@ -4,7 +4,7 @@
     <!-- Header Node -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-5 pb-3 border-bottom border-secondary">
         <div>
-            <h2 class="fw-bold text-white mb-1" style="font-family: 'Space Grotesk', sans-serif;">🎯 Analytics Dashboard</h2>
+            <h2 class="fw-bold text-white mb-1" style="font-family: 'Space Grotesk', sans-serif;">Analytics Dashboard</h2>
             <p class="text-muted mb-0">Welcome back, <span class="fw-semibold text-primary text-glow-primary">{{ session['username'] }}</span>! Here are your workspace insights.</p>
         </div>
         <div class="d-flex gap-2">
@@ -214,7 +214,7 @@
   "labels": [{% for id, filename, plagiarism, ai_generated_score, model_used, created_at in rows|reverse %}"#{{ loop.index }}"{% if not loop.last %},{% endif %}{% endfor %}],
   "plagData": [{% for id, filename, plagiarism, ai_generated_score, model_used, created_at in rows|reverse %}{{ plagiarism }}{% if not loop.last %},{% endif %}{% endfor %}],
   "aiData": [{% for id, filename, plagiarism, ai_generated_score, model_used, created_at in rows|reverse %}{{ ai_generated_score }}{% if not loop.last %},{% endif %}{% endfor %}],
-  "models": [{% for id, filename, plagiarism, ai_generated_score, model_used, created_at in rows %}"{{ model_used }}"{% if not loop.last %},{% endif %}{% endfor %}]
+  "models": [{% for id, filename, plagiarism, ai_generated_score, model_used, created_at in rows|reverse %}"{{ model_used }}"{% if not loop.last %},{% endif %}{% endfor %}]
 }
 </script>
 {% endif %}
@@ -293,10 +293,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const modelLabels = Object.keys(modelCounts);
         const modelData = Object.values(modelCounts);
         const modelColors = modelLabels.map(l => {
-            if (l.includes('LLM')) return '#e11d48';
-            if (l === 'Semantic') return '#fda4af';
-            if (l === 'Lexical') return '#f43f5e';
-            return '#64748b';
+            if (l.includes('LLM')) return '#a855f7';       // Premium Purple for AI Risk
+            if (l === 'Semantic') return '#3b82f6';      // Vivid Blue for Vector Semantic
+            if (l === 'Lexical') return '#64748b';       // Slate/Gray for Lexical
+            return '#475569';
         });
 
         const modelCtx = document.getElementById('modelChart').getContext('2d');
