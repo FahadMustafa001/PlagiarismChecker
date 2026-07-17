@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row g-4 justify-content-center py-2 position-relative" id="mainContainer">
+    <!-- Main Content Col -->
+    <div class="col-lg-8">
+        <div class="mb-4">
+            <h2 class="fw-bold text-white mb-1" style="font-family: 'Space Grotesk', sans-serif;">🎯 New Integrity Audit</h2>
+            <p class="text-muted">Analyze your documents for contextual plagiarism and AI-generated variations.</p>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" id="auditForm">
+            <!-- Tabs Navigation -->
+            <ul class="nav nav-tabs border-secondary mb-4" id="uploadTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active text-white px-4 py-2.5 fw-semibold border-secondary bg-transparent" id="file-tab" data-bs-toggle="tab" data-bs-target="#filePane" type="button" role="tab" style="border-bottom: 2px solid var(--primary-glow) !important;">
+                        <i class="bi bi-file-earmark-arrow-up me-1"></i> Upload File
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link text-white px-4 py-2.5 fw-semibold border-0 bg-transparent" id="text-tab" data-bs-toggle="tab" data-bs-target="#textPane" type="button" role="tab">
+                        <i class="bi bi-file-text me-1"></i> Paste Text
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tabs Content -->
+            <div class="tab-content" id="uploadTabsContent">
+                <!-- File Upload Tab -->
+                <div class="tab-pane fade show active" id="filePane" role="tabpanel" aria-labelledby="file-tab">
+                    <div class="upload-drop-zone py-5 px-3 mb-3" id="dropZone">
+                        <div class="glow-effect"></div>
+                        <i class="bi bi-cloud-arrow-up text-primary display-4 mb-3 d-block text-glow-primary"></i>
+                        <h5 class="fw-bold text-white mb-2">Drag & drop your document here</h5>
+                        <p class="text-muted small mb-4">Supports secure <span class="text-white fw-medium">.pdf, .docx, or .txt</span> files (Max 10MB)</p>
+                        
+                        <button type="button" class="btn btn-outline-light btn-sm rounded-pill px-4" onclick="document.getElementById('fileInput').click()">
+                            Browse Local Storage
+                        </button>
+                        <input type="file" name="file" id="fileInput" class="d-none" accept=".pdf,.docx,.txt">
+                    </div>
+
+                    <!-- File Metadata Panel -->
+                    <div id="fileMetadata" class="card border border-secondary p-3 mt-3 bg-dark-subtle d-none rounded-3">
+                        <div class="d-flex align-items-center">
+                            <div class="p-2.5 bg-success-subtle text-success rounded-3 me-3">
+                                <i class="bi bi-file-earmark-check-fill fs-4"></i>
+                            </div>
+                            <div class="overflow-hidden me-auto">
+                                <span id="metaName" class="fw-bold text-white d-block text-truncate small">filename.pdf</span>
+                                <small id="metaSize" class="text-muted" style="font-size: 0.75rem;">0.00 KB</small>
+                            </div>
+                            <button type="button" class="btn-close btn-close-white btn-sm shadow-none ms-2" onclick="resetFileSelection()"></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Text Area Tab -->
+                <div class="tab-pane fade" id="textPane" role="tabpanel" aria-labelledby="text-tab">
+                    <div class="textarea-container position-relative mb-3">
+                        <textarea name="pasted_text" id="pastedText" class="form-control bg-dark text-white border-secondary p-4 shadow-none rounded-4" rows="10" placeholder="Paste your academic text or source code here (minimum 25 words)..." style="resize: vertical; min-height: 250px; font-family: 'Plus Jakarta Sans', sans-serif;"></textarea>
+                        <div class="d-flex justify-content-between align-items-center mt-2 px-1">
+                            <small class="text-muted" id="wordCountDisplay"><span class="text-white fw-bold">0</span> Words</small>
+                            <button type="button" class="btn btn-link btn-sm text-secondary text-decoration-none p-0" onclick="clearTextarea()">
+                                <i class="bi bi-trash3 me-1"></i> Clear Content
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <input type="hidden" name="enable_web_search" value="on">
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary w-100 btn-lg rounded-3 mt-4 py-3 fw-bold border-0 shadow-lg d-flex align-items-center justify-content-center gap-2" style="background: var(--primary-gradient);">
+                <i class="bi bi-cpu-fill fs-5 text-glow-primary"></i> Execute Deep AI Audit
+            </button>
+        </form>
+    </div>
+
+    <!-- System Intel Sidebar (Right) -->
+    <div class="col-lg-4">
+        <div class="mb-4">
+            <h4 class="fw-bold text-white mb-1" style="font-family: 'Space Grotesk', sans-serif;">🔒 Audit Node Intel</h4>
+            <p class="text-muted">Real-time status of analysis nodes and environment keys.</p>
+        </div>
+
+        <div class="card border border-secondary p-4 rounded-4 mb-4 tilt-3d" style="background: rgba(18, 9, 13, 0.455);">
+            <h5 class="fw-bold text-white mb-3 small text-uppercase tracking-wider text-muted">Active Pipeline</h5>
+            
+            <div class="d-flex flex-column gap-3">
+                <!-- Node 1: Cloud APIs -->
+                <div class="p-3 border border-secondary rounded-3 d-flex align-items-center justify-content-between" style="background: rgba(12, 6, 8, 0.35);">
+                    <div class="d-flex align-items-center gap-3">
+                        <div>
+                            <span class="fw-bold text-white d-block small">Cloud LLM Node</span>
+                            <small class="text-muted" style="font-size: 0.72rem;">Groq / OpenRouter</small>
+                        </div>
+                    </div>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">Active</span>
+                </div>
+
+                <!-- Node 2: Local AI Fallback -->
+                <div class="p-3 border border-secondary rounded-3 d-flex align-items-center justify-content-between" style="background: rgba(12, 6, 8, 0.35);">
+                    <div class="d-flex align-items-center gap-3">
+                        <div>
+                            <span class="fw-bold text-white d-block small">Local S-BERT Node</span>
+                            <small class="text-muted" style="font-size: 0.72rem;">All-MiniLM-L6-v2</small>
+                        </div>
+                    </div>
+                    <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill">Standby</span>
+                </div>
+
+                <!-- Node 3: Search Network Scraper -->
+                <div class="p-3 border border-secondary rounded-3 d-flex align-items-center justify-content-between" style="background: rgba(12, 6, 8, 0.35);">
+                    <div class="d-flex align-items-center gap-3">
+                        <div>
+                            <span class="fw-bold text-white d-block small">Live Web Agent</span>
+                            <small class="text-muted" style="font-size: 0.72rem;">Dual DDG Scraper</small>
+                        </div>
+                    </div>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">Ready</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ensemble Signal Showcase Card -->
+        <div class="card border border-secondary p-4 rounded-4 tilt-3d" style="background: rgba(18, 9, 13, 0.455);">
+            <h5 class="fw-bold text-white mb-3 small text-uppercase tracking-wider text-muted">Stylometrics Signals</h5>
+            <ul class="list-unstyled mb-0 d-flex flex-column gap-3">
+                <li class="small text-muted border-bottom border-secondary-subtle pb-2">
+                    <strong class="text-white d-block small text-primary mb-1">Burstiness Score</strong>
+                    Measures variance in sentence lengths to flag AI uniformity.
+                </li>
+                <li class="small text-muted border-bottom border-secondary-subtle pb-2">
+                    <strong class="text-white d-block small text-primary mb-1">Transition word density</strong>
+                    Identifies unnatural patterns of AI transition phrases.
+                </li>
+                <li class="small text-muted pb-1">
+                    <strong class="text-white d-block small text-primary mb-1">Type-Token Ratio (TTR)</strong>
+                    Computes vocabulary richness and unique word metrics.
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Drop Zone styling */
+    .upload-drop-zone {
+        border: 2px dashed rgba(255, 255, 255, 0.2);
+        background: rgba(15, 23, 42, 0.3);
+        border-radius: 20px;
+        text-align: center;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .upload-drop-zone:hover, .upload-drop-zone.dragover {
+        border-color: var(--primary-glow);
+        background: rgba(59, 130, 246, 0.05);
+        transform: translateY(-2px);
+    }
+    .upload-drop-zone.dragover {
+        box-shadow: 0 0 25px rgba(59, 130, 246, 0.15);
+    }
+
+    /* Tab controls custom active states */
+    .nav-tabs .nav-link:hover {
+        border-color: transparent;
+        color: var(--primary-glow) !important;
+    }
+    .nav-tabs .nav-link.active {
+        color: var(--primary-glow) !important;
+    }
+
+</style>
+
+<script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileMetadata = document.getElementById('fileMetadata');
+    const metaName = document.getElementById('metaName');
+    const metaSize = document.getElementById('metaSize');
+    const pastedText = document.getElementById('pastedText');
+    const wordCountDisplay = document.getElementById('wordCountDisplay');
+    const auditForm = document.getElementById('auditForm');
+    const scannerOverlay = document.getElementById('scannerOverlay');
+    const scannerStatus = document.getElementById('scannerStatus');
+    const scannerProgress = document.getElementById('scannerProgress');
+
+    // Drag and Drop Handling
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => { 
+            e.preventDefault(); 
+            dropZone.classList.add('dragover'); 
+        }, false);
+    });
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => { 
+            e.preventDefault(); 
+            dropZone.classList.remove('dragover'); 
+        }, false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if(files.length > 0) {
+            fileInput.files = files;
+            displayMetadata(files[0]);
+            // Switch tabs visually to indicate file is selected
+            document.getElementById('file-tab').click();
+            // Clear pasted text
+            pastedText.value = "";
+            updateWordCount();
+        }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        if(fileInput.files.length > 0) {
+            displayMetadata(fileInput.files[0]);
+            pastedText.value = "";
+            updateWordCount();
+        }
+    });
+
+    function displayMetadata(file) {
+        metaName.textContent = file.name;
+        metaSize.textContent = file.size > 1024 * 1024 
+            ? (file.size / (1024 * 1024)).toFixed(2) + ' MB' 
+            : (file.size / 1024).toFixed(2) + ' KB';
+        fileMetadata.classList.remove('d-none');
+    }
+
+    function resetFileSelection() {
+        fileInput.value = '';
+        fileMetadata.classList.add('d-none');
+    }
+
+    // Text Area Handling
+    pastedText.addEventListener('input', updateWordCount);
+
+    function updateWordCount() {
+        const text = pastedText.value.trim();
+        const wordCount = text === "" ? 0 : text.split(/\s+/).length;
+        wordCountDisplay.innerHTML = `<span class="text-white fw-bold">${wordCount}</span> Words`;
+        
+        // If user starts typing, clear file uploads
+        if(wordCount > 0) {
+            resetFileSelection();
+        }
+    }
+
+    function clearTextarea() {
+        pastedText.value = "";
+        updateWordCount();
+    }
+
+    // Tab Switches
+    document.getElementById('file-tab').addEventListener('click', () => {
+        document.getElementById('file-tab').style.borderBottom = "2px solid var(--primary-glow)";
+        document.getElementById('text-tab').style.borderBottom = "none";
+    });
+    document.getElementById('text-tab').addEventListener('click', () => {
+        document.getElementById('text-tab').style.borderBottom = "2px solid var(--primary-glow)";
+        document.getElementById('file-tab').style.borderBottom = "none";
+    });
+
+    // Handle Form Submit & Animation Overlay with SSE
+    auditForm.addEventListener('submit', (e) => {
+        const fileSelected = fileInput.files.length > 0;
+        const textLength = pastedText.value.trim().length;
+
+        if(!fileSelected && textLength === 0) {
+            e.preventDefault();
+            alert("Please upload a file or paste some text first.");
+            return;
+        }
+
+        // Show scanner overlay
+        scannerOverlay.classList.remove('d-none');
+        
+        // Connect to SSE for real-time progress
+        let sseConnected = false;
+        try {
+            const evtSource = new EventSource('/scan-progress');
+            evtSource.onmessage = function(event) {
+                sseConnected = true;
+                const data = JSON.parse(event.data);
+                scannerStatus.textContent = data.message;
+                scannerProgress.style.width = data.percent + "%";
+                
+                if (data.percent >= 100) {
+                    evtSource.close();
+                }
+            };
+            evtSource.onerror = function() {
+                evtSource.close();
+                if (!sseConnected) {
+                    runFallbackProgress();
+                }
+            };
+        } catch(err) {
+            runFallbackProgress();
+        }
+    });
+
+    function runFallbackProgress() {
+        const statusSteps = [
+            { limit: 30, text: "Extracting document...", percent: 30 },
+            { limit: 60, text: "Contacting cloud nodes...", percent: 60 },
+            { limit: 90, text: "Running LLM stylometric analysis...", percent: 85 },
+            { limit: 120, text: "Generating integrity reports...", percent: 95 }
+        ];
+
+        let progress = 15;
+        let currentStep = 0;
+        const interval = setInterval(() => {
+            progress += Math.floor(Math.random() * 4) + 1;
+            if (currentStep < statusSteps.length && progress >= statusSteps[currentStep].limit) {
+                scannerStatus.textContent = statusSteps[currentStep].text;
+                scannerProgress.style.width = statusSteps[currentStep].percent + "%";
+                currentStep++;
+            }
+            if (progress >= 100) {
+                clearInterval(interval);
+            }
+        }, 150);
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-2 animate-fade-in">
+    <!-- Header Node -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-5 pb-3 border-bottom border-secondary">
+        <div>
+            <h2 class="fw-bold text-white mb-1" style="font-family: 'Space Grotesk', sans-serif;">🎯 Analytics Dashboard</h2>
+            <p class="text-muted mb-0">Welcome back, <span class="fw-semibold text-primary text-glow-primary">{{ session['username'] }}</span>! Here are your workspace insights.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('upload_assignment') }}" class="btn btn-primary px-4 py-2.5 fw-semibold rounded-3 border-0 shadow d-flex align-items-center gap-2 btn-glow" style="background: var(--primary-gradient);">
+                <i class="bi bi-cloud-plus-fill"></i> New Scan
+            </a>
+            <a href="{{ url_for('logout') }}" class="btn btn-outline-danger px-4 py-2.5 fw-semibold rounded-3 d-flex align-items-center gap-2">
+                <i class="bi bi-box-arrow-right"></i> Sign Out
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards Row -->
+    {% set ns = namespace(total_plag=0.0, total_ai=0.0) %}
+    {% if rows %}
+        {% for id, filename, plagiarism, ai_generated_score, model_used, created_at in rows %}
+            {% set ns.total_plag = ns.total_plag + plagiarism %}
+            {% set ns.total_ai = ns.total_ai + ai_generated_score %}
+        {% endfor %}
+        {% set avg_plag = (ns.total_plag / rows|length)|round(1) %}
+        {% set avg_ai = (ns.total_ai / rows|length)|round(1) %}
+    {% else %}
+        {% set avg_plag = 0.0 %}
+        {% set avg_ai = 0.0 %}
+    {% endif %}
+
+    <div class="row g-4 mb-5 animate-stagger">
+        <div class="col-md-4">
+            <div class="card border border-secondary p-4 rounded-4 hover-lift tilt-3d" style="background: rgba(15, 23, 42, 0.4);">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="p-3 bg-primary-subtle text-primary rounded-4">
+                        <i class="bi bi-folder2-open fs-3"></i>
+                    </div>
+                    <div>
+                        <small class="text-uppercase fw-bold text-muted small tracking-wider">Total Audited</small>
+                        <h3 class="fw-bold text-white mb-0 mt-1">{{ rows|length }} <span class="fs-6 fw-normal text-muted">docs</span></h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border border-secondary p-4 rounded-4 hover-lift tilt-3d" style="background: rgba(15, 23, 42, 0.4);">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="p-3 bg-danger-subtle text-danger rounded-4">
+                        <i class="bi bi-shield-slash fs-3"></i>
+                    </div>
+                    <div>
+                        <small class="text-uppercase fw-bold text-muted small tracking-wider">Avg Plagiarism</small>
+                        <h3 class="fw-bold text-white mb-0 mt-1">{{ avg_plag }}%</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border border-secondary p-4 rounded-4 hover-lift tilt-3d" style="background: rgba(15, 23, 42, 0.4);">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="p-3 rounded-4" style="background: rgba(168,85,247,0.15); color: #a855f7;">
+                        <i class="bi bi-robot fs-3"></i>
+                    </div>
+                    <div>
+                        <small class="text-uppercase fw-bold text-muted small tracking-wider">Avg AI Risk</small>
+                        <h3 class="fw-bold text-white mb-0 mt-1">{{ avg_ai }}%</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    {% if rows|length > 1 %}
+    <div class="row g-4 mb-5 animate-stagger">
+        <!-- Trend Line Chart -->
+        <div class="col-lg-8">
+            <div class="card border border-secondary rounded-4 p-4 hover-lift" style="background: rgba(15, 23, 42, 0.35);">
+                <h5 class="fw-bold text-white mb-3" style="font-family: 'Space Grotesk', sans-serif;">
+                    <i class="bi bi-graph-up me-2 text-primary"></i>Score Trends Over Scans
+                </h5>
+                <div style="position: relative; height: 260px;">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <!-- Model Distribution Donut -->
+        <div class="col-lg-4">
+            <div class="card border border-secondary rounded-4 p-4 hover-lift" style="background: rgba(15, 23, 42, 0.35);">
+                <h5 class="fw-bold text-white mb-3" style="font-family: 'Space Grotesk', sans-serif;">
+                    <i class="bi bi-pie-chart me-2 text-primary"></i>Model Usage
+                </h5>
+                <div style="position: relative; height: 260px;">
+                    <canvas id="modelChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Reports Log Panel -->
+    <div class="card border border-secondary rounded-4 overflow-hidden animate-scale-in" style="background: rgba(15, 23, 42, 0.35);">
+        <div class="card-header bg-dark border-bottom border-secondary py-3 px-4 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold text-white" style="font-family: 'Space Grotesk', sans-serif;">
+                <i class="bi bi-list-task me-2 text-primary"></i> Scan History
+            </h5>
+            <span class="badge bg-secondary border border-secondary text-white rounded-pill px-2.5 small">{{ rows|length }} Records</span>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table table-dark table-hover align-middle mb-0" style="background: transparent;">
+                <thead>
+                    <tr class="text-muted border-bottom border-secondary">
+                        <th scope="col" class="ps-4 py-3 small text-uppercase tracking-wider">Filename</th>
+                        <th scope="col" class="py-3 small text-uppercase tracking-wider">Model</th>
+                        <th scope="col" class="py-3 small text-uppercase tracking-wider">Plagiarism</th>
+                        <th scope="col" class="py-3 small text-uppercase tracking-wider">AI Risk</th>
+                        <th scope="col" class="pe-4 py-3 text-end small text-uppercase tracking-wider" style="width: 220px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if rows %}
+                        {% for id, filename, plagiarism, ai_generated_score, model_used, created_at in rows %}
+                        <tr class="border-bottom border-secondary">
+                            <td class="ps-4 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="p-2 bg-dark border border-secondary text-primary rounded-3 me-3">
+                                        <i class="bi bi-file-earmark-text fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <span class="fw-bold text-white d-block text-truncate" style="max-width: 220px;" title="{{ filename }}">{{ filename }}</span>
+                                        <small class="text-muted small d-block mt-0.5"><i class="bi bi-clock me-1"></i> {{ created_at }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-3">
+                                <span class="badge rounded border px-2.5 py-1.5 {% if 'LLM' in (model_used or '') %}bg-purple-subtle border-purple-subtle{% elif model_used == 'Semantic' %}bg-primary-subtle text-primary border-primary-subtle{% else %}bg-secondary-subtle text-secondary border-secondary-subtle{% endif %}" {% if 'LLM' in (model_used or '') %}style="color: #c084fc !important; border-color: rgba(168,85,247,0.3) !important;"{% endif %}>
+                                    {{ model_used }}
+                                </span>
+                            </td>
+                            <td class="py-3">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="fw-bold text-white">{{ plagiarism }}%</span>
+                                    {% if plagiarism < 15 %}
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5">Safe</span>
+                                    {% elif plagiarism <= 40 %}
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5">Review</span>
+                                    {% else %}
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5">High</span>
+                                    {% endif %}
+                                </div>
+                                <div class="progress bg-dark border border-secondary" style="height: 5px; width: 120px;">
+                                    <div class="progress-bar dynamic-progress {% if plagiarism < 15 %}bg-success{% elif plagiarism <= 40 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                         role="progressbar" data-progress="{{ plagiarism }}" style="width: 0%;"></div>
+                                </div>
+                            </td>
+                            <td class="py-3">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="fw-bold text-white">{{ ai_generated_score }}%</span>
+                                    {% if ai_generated_score < 30 %}
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5">Human</span>
+                                    {% elif ai_generated_score <= 70 %}
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5">Mixed</span>
+                                    {% else %}
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5">AI</span>
+                                    {% endif %}
+                                </div>
+                                <div class="progress bg-dark border border-secondary" style="height: 5px; width: 120px;">
+                                    <div class="progress-bar dynamic-progress {% if ai_generated_score < 30 %}bg-success{% elif ai_generated_score <= 70 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                         role="progressbar" data-progress="{{ ai_generated_score }}" style="width: 0%;"></div>
+                                </div>
+                            </td>
+                            <td class="pe-4 py-3 text-end">
+                                <div class="d-inline-flex gap-2">
+                                    <a href="/result/{{ id }}" class="btn btn-sm btn-dark border border-secondary text-white rounded-3 px-3 py-1.5 d-flex align-items-center gap-1" title="View Report">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                    <a href="/export/{{ id }}" class="btn btn-sm btn-outline-primary rounded-3 px-3 py-1.5 d-flex align-items-center gap-1" title="Download PDF">
+                                        <i class="bi bi-download"></i>
+                                    </a>
+                                    <form action="/delete/{{ id }}" method="POST" onsubmit="return confirm('Delete this scan report?');" class="m-0">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-3 px-3 py-1.5 d-flex align-items-center gap-1">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <div class="mb-3">
+                                    <i class="bi bi-folder-x display-3"></i>
+                                </div>
+                                No assignments scanned yet. Click "New Scan" to start auditing!
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if rows|length > 1 %}
+<script id="chart-data" type="application/json">
+{
+  "labels": [{% for id, filename, plagiarism, ai_generated_score, model_used, created_at in rows|reverse %}"#{{ loop.index }}"{% if not loop.last %},{% endif %}{% endfor %}],
+  "plagData": [{% for id, filename, plagiarism, ai_generated_score, model_used, created_at in rows|reverse %}{{ plagiarism }}{% if not loop.last %},{% endif %}{% endfor %}],
+  "aiData": [{% for id, filename, plagiarism, ai_generated_score, model_used, created_at in rows|reverse %}{{ ai_generated_score }}{% if not loop.last %},{% endif %}{% endfor %}],
+  "models": [{% for id, filename, plagiarism, ai_generated_score, model_used, created_at in rows %}"{{ model_used }}"{% if not loop.last %},{% endif %}{% endfor %}]
+}
+</script>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate progress bars
+    document.querySelectorAll('.dynamic-progress').forEach(function(bar) {
+        const progress = bar.getAttribute('data-progress') || 0;
+        setTimeout(function() {
+            bar.style.transition = 'width 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
+            bar.style.width = progress + '%';
+        }, 200);
+    });
+
+    const chartDataEl = document.getElementById('chart-data');
+    if (chartDataEl) {
+        const data = JSON.parse(chartDataEl.textContent);
+        const labels = data.labels;
+        const plagData = data.plagData;
+        const aiData = data.aiData;
+        const models = data.models;
+
+        // Trend Line Chart
+        const trendCtx = document.getElementById('trendChart').getContext('2d');
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Plagiarism %',
+                        data: plagData,
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#ef4444',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    },
+                    {
+                        label: 'AI Score %',
+                        data: aiData,
+                        borderColor: '#a855f7',
+                        backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#a855f7',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#94a3b8', font: { size: 11 } } }
+                },
+                scales: {
+                    x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+                    y: { min: 0, max: 100, ticks: { color: '#64748b', font: { size: 10 }, callback: v => v + '%' }, grid: { color: 'rgba(255,255,255,0.04)' } }
+                }
+            }
+        });
+
+        // Model Distribution Donut Chart
+        const modelCounts = {};
+        models.forEach(m => {
+            modelCounts[m] = (modelCounts[m] || 0) + 1;
+        });
+        
+        const modelLabels = Object.keys(modelCounts);
+        const modelData = Object.values(modelCounts);
+        const modelColors = modelLabels.map(l => {
+            if (l.includes('LLM')) return '#e11d48';
+            if (l === 'Semantic') return '#fda4af';
+            if (l === 'Lexical') return '#f43f5e';
+            return '#64748b';
+        });
+
+        const modelCtx = document.getElementById('modelChart').getContext('2d');
+        new Chart(modelCtx, {
+            type: 'doughnut',
+            data: {
+                labels: modelLabels,
+                datasets: [{
+                    data: modelData,
+                    backgroundColor: modelColors,
+                    borderColor: '#0b0f19',
+                    borderWidth: 3,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#94a3b8', font: { size: 11 }, padding: 15, usePointStyle: true, pointStyleWidth: 10 }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

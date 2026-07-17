@@ -1,0 +1,394 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-2 animate-fade-in">
+    <!-- Header Page Node -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-5 pb-3 border-bottom border-secondary">
+        <div>
+            <h2 class="fw-bold text-white mb-1" style="font-family: 'Space Grotesk', sans-serif;">📊 Scan Analysis Report</h2>
+            <p class="text-muted mb-0">Detailed diagnostic log for: <span class="text-white fw-semibold">{{ filename }}</span></p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{{ url_for('export_pdf', assignment_id=assignment_id) }}" class="btn btn-outline-success px-3 py-2 rounded-3 d-flex align-items-center gap-2 fw-medium">
+                <i class="bi bi-filetype-pdf"></i> Export PDF
+            </a>
+            <a href="{{ url_for('compare_view', assignment_id=assignment_id) }}" class="btn btn-outline-warning px-3 py-2 rounded-3 d-flex align-items-center gap-2 fw-medium">
+                <i class="bi bi-layout-split"></i> Compare
+            </a>
+            <a href="{{ url_for('upload_assignment') }}" class="btn btn-outline-light px-3 py-2 rounded-3 d-flex align-items-center gap-2">
+                <i class="bi bi-arrow-left-short fs-5"></i> Scan Another
+            </a>
+            <a href="{{ url_for('view_assignments') }}" class="btn btn-primary px-3 py-2 rounded-3 border-0 d-flex align-items-center gap-2 btn-glow" style="background: var(--primary-gradient);">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Overview Statistics Dashboard -->
+    <div class="row g-4 mb-5">
+        <!-- Plagiarism Progress Ring -->
+        <div class="col-lg-6">
+            <div class="card border border-secondary p-4 rounded-4 text-center h-100 position-relative overflow-hidden tilt-3d" style="background: rgba(15, 23, 42, 0.45);">
+                <div class="position-absolute top-0 start-0 h-100 bg-primary" style="width: 4px; box-shadow: 0 0 15px var(--primary-glow);"></div>
+                <small class="text-uppercase fw-bold text-muted small tracking-wider d-block mb-3">Contextual Plagiarism Index</small>
+                
+                <div class="d-flex justify-content-center align-items-center my-3 position-relative">
+                    <svg class="progress-ring" width="130" height="130">
+                        <circle class="progress-ring__background" stroke="rgba(255,255,255,0.06)" stroke-width="8" fill="transparent" r="54" cx="65" cy="65"/>
+                        <circle class="progress-ring__circle dynamic-ring" stroke="{% if plagiarism_percentage < 15 %}#10b981{% elif plagiarism_percentage <= 40 %}#f59e0b{% else %}#ef4444{% endif %}" stroke-width="8" fill="transparent" r="54" cx="65" cy="65" data-progress="{{ plagiarism_percentage }}"/>
+                    </svg>
+                    <div class="position-absolute fs-2 fw-bold text-white" style="font-family: 'Space Grotesk', sans-serif;">
+                        {{ plagiarism_percentage }}<span class="fs-6 text-muted">%</span>
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    {% if plagiarism_percentage < 15 %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2"><i class="bi bi-shield-check me-1"></i> High Integrity (Safe)</span>
+                    {% elif plagiarism_percentage <= 40 %}
+                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-3 py-2"><i class="bi bi-exclamation-triangle me-1"></i> Moderate Match (Review)</span>
+                    {% else %}
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-2"><i class="bi bi-x-circle me-1"></i> High Matches (Flagged)</span>
+                    {% endif %}
+                </div>
+                <p class="text-muted small mt-3 mb-0">Cross-analyzed with online indexes via the <span class="text-white font-monospace">{{ model_used }}</span> matching algorithm.</p>
+            </div>
+        </div>
+
+        <!-- AI Progress Ring -->
+        <div class="col-lg-6">
+            <div class="card border border-secondary p-4 rounded-4 text-center h-100 position-relative overflow-hidden tilt-3d" style="background: rgba(15, 23, 42, 0.45);">
+                <div class="position-absolute top-0 start-0 h-100 bg-purple" style="width: 4px; background-color: #a855f7 !important; box-shadow: 0 0 15px rgba(168,85,247,0.5);"></div>
+                <small class="text-uppercase fw-bold text-muted small tracking-wider d-block mb-3">AI Generation Probability</small>
+                
+                <div class="d-flex justify-content-center align-items-center my-3 position-relative">
+                    <svg class="progress-ring" width="130" height="130">
+                        <circle class="progress-ring__background" stroke="rgba(255,255,255,0.06)" stroke-width="8" fill="transparent" r="54" cx="65" cy="65"/>
+                        <circle class="progress-ring__circle dynamic-ring" stroke="{% if ai_score < 30 %}#10b981{% elif ai_score <= 70 %}#f59e0b{% else %}#a855f7{% endif %}" stroke-width="8" fill="transparent" r="54" cx="65" cy="65" data-progress="{{ ai_score }}"/>
+                    </svg>
+                    <div class="position-absolute fs-2 fw-bold text-white" style="font-family: 'Space Grotesk', sans-serif;">
+                        {{ ai_score }}<span class="fs-6 text-muted">%</span>
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    {% if ai_score < 30 %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2"><i class="bi bi-person me-1"></i> Human Generated</span>
+                    {% elif ai_score <= 70 %}
+                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-3 py-2"><i class="bi bi-shield-exclamation me-1"></i> Mixed / AI-Assisted</span>
+                    {% else %}
+                        <span class="badge bg-purple-subtle text-purple border border-purple-subtle rounded-pill px-3 py-2" style="color: #c084fc !important; border-color: rgba(168,85,247,0.3) !important;"><i class="bi bi-robot me-1"></i> Heavily Automated AI Text</span>
+                    {% endif %}
+                </div>
+                <p class="text-muted small mt-3 mb-0">Evaluated using structural word perplexity and sentence length burstiness proxies.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stylometric Vector Signature (5-Signal Ensemble Breakdown) -->
+    <div class="card border border-secondary p-4 rounded-4 mb-5 tilt-3d" style="background: rgba(18, 9, 13, 0.455);">
+        <h5 class="fw-bold text-white mb-4" style="font-family: 'Space Grotesk', sans-serif;">
+            <i class="bi bi-fingerprint text-primary me-2"></i> Stylometric Vector Signature
+        </h5>
+        <div class="d-flex flex-wrap gap-3 justify-content-between">
+            <!-- Signal 1: Burstiness -->
+            <div class="flex-fill p-3 border border-secondary rounded-4 text-center" style="min-width: 170px; background: rgba(12, 6, 8, 0.35);">
+                <small class="text-muted d-block text-uppercase tracking-wider fw-bold" style="font-size: 0.65rem;">Burstiness SD</small>
+                <h4 class="fw-bold text-white my-2">{{ burstiness }}</h4>
+                <div class="progress bg-dark" style="height: 5px;">
+                    <div class="progress-bar bg-primary dynamic-progress" style="width: 0%;" data-progress="{{ [burstiness * 10, 100]|min }}"></div>
+                </div>
+                <small class="text-muted d-block mt-2" style="font-size: 0.6rem;">Human Standard: &gt; 5.0</small>
+            </div>
+            <!-- Signal 2: Transition Density -->
+            <div class="flex-fill p-3 border border-secondary rounded-4 text-center" style="min-width: 170px; background: rgba(12, 6, 8, 0.35);">
+                <small class="text-muted d-block text-uppercase tracking-wider fw-bold" style="font-size: 0.65rem;">Transition Rate</small>
+                <h4 class="fw-bold text-white my-2">{{ transition_density }}</h4>
+                <div class="progress bg-dark" style="height: 5px;">
+                    <div class="progress-bar bg-purple dynamic-progress" style="background-color: #8b5cf6 !important; width: 0%;" data-progress="{{ [transition_density * 20, 100]|min }}"></div>
+                </div>
+                <small class="text-muted d-block mt-2" style="font-size: 0.6rem;">AI Standard: &gt; 3.0</small>
+            </div>
+            <!-- Signal 3: Vocabulary Richness (TTR) -->
+            <div class="flex-fill p-3 border border-secondary rounded-4 text-center" style="min-width: 170px; background: rgba(12, 6, 8, 0.35);">
+                <small class="text-muted d-block text-uppercase tracking-wider fw-bold" style="font-size: 0.65rem;">Vocabulary TTR</small>
+                <h4 class="fw-bold text-white my-2">{{ ttr }}%</h4>
+                <div class="progress bg-dark" style="height: 5px;">
+                    <div class="progress-bar bg-success dynamic-progress" style="width: 0%;" data-progress="{{ ttr }}"></div>
+                </div>
+                <small class="text-muted d-block mt-2" style="font-size: 0.6rem;">Human Standard: &gt; 55%</small>
+            </div>
+            <!-- Signal 4: Opener Diversity -->
+            <div class="flex-fill p-3 border border-secondary rounded-4 text-center" style="min-width: 170px; background: rgba(12, 6, 8, 0.35);">
+                <small class="text-muted d-block text-uppercase tracking-wider fw-bold" style="font-size: 0.65rem;">Opener Diversity</small>
+                <h4 class="fw-bold text-white my-2">{{ opener_diversity }}%</h4>
+                <div class="progress bg-dark" style="height: 5px;">
+                    <div class="progress-bar bg-info dynamic-progress" style="width: 0%;" data-progress="{{ opener_diversity }}"></div>
+                </div>
+                <small class="text-muted d-block mt-2" style="font-size: 0.6rem;">Human Standard: &gt; 50%</small>
+            </div>
+            <!-- Signal 5: Avg Word Length -->
+            <div class="flex-fill p-3 border border-secondary rounded-4 text-center" style="min-width: 170px; background: rgba(12, 6, 8, 0.35);">
+                <small class="text-muted d-block text-uppercase tracking-wider fw-bold" style="font-size: 0.65rem;">Avg Word Len</small>
+                <h4 class="fw-bold text-white my-2">{{ avg_word_len }}</h4>
+                <div class="progress bg-dark" style="height: 5px;">
+                    <div class="progress-bar bg-warning dynamic-progress" style="width: 0%;" data-progress="{{ [avg_word_len * 15, 100]|min }}"></div>
+                </div>
+                <small class="text-muted d-block mt-2" style="font-size: 0.6rem;">AI Standard: 4.8 - 5.4</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Side by Side Layout: Viewer vs Controls/Sources -->
+    <div class="row g-4">
+        <!-- Interactive Document Highlight Viewer (Left) -->
+        <div class="col-xl-8">
+            <div class="card border border-secondary rounded-4 overflow-hidden h-100" style="background: rgba(18, 9, 13, 0.25);">
+                <div class="card-header bg-dark border-bottom border-secondary py-3 px-4 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-white" style="font-family: 'Space Grotesk', sans-serif;">
+                        <i class="bi bi-file-text me-2 text-primary"></i> Interactive Integrity Document Viewer
+                    </h5>
+                    <span class="badge bg-dark border border-secondary text-white rounded-pill px-3 py-1.5 small">Click highlighted text for details</span>
+                </div>
+                
+                <div class="card-body p-4 text-viewer-pane" style="max-height: 550px; overflow-y: auto; background: #0d0608; color: #cbd5e1; font-size: 1.05rem; line-height: 1.8; font-weight: 400; border-radius: 0 0 16px 16px;">
+                    {% if scan_report and scan_report.sentences %}
+                        {% for s in scan_report.sentences %}
+                            {% set is_plag = s.is_plagiarized %}
+                            {% set is_ai = s.ai_score > 60.0 %}
+                            
+                            {% if is_plag and is_ai %}
+                                <span class="highlight-node highlight-both" data-bs-toggle="popover" data-bs-html="true" data-bs-title="🕵️ Double Audit Flag" data-bs-content="<strong>Plagiarism Score:</strong> {{ s.plagiarism_score }}%<br><strong>Matched Source:</strong> <a href='{{ s.matched_url }}' target='_blank' class='text-primary text-break'>{{ s.matched_url }}</a><br><br><strong>Original Text:</strong> <em class='text-muted small'>&quot;{{ s.matched_text }}&quot;</em><br><hr class='my-2 border-secondary'><strong>AI Score:</strong> {{ s.ai_score }}% probability.{% if s.explanation %}<br><br><span class='text-warning small'><strong>LLM Insight:</strong> {{ s.explanation }}</span>{% endif %}">{{ s.text }}</span>
+                            {% elif is_plag %}
+                                <span class="highlight-node highlight-plagiarism" data-bs-toggle="popover" data-bs-html="true" data-bs-title="🚨 Plagiarism Match" data-bs-content="<strong>Score:</strong> {{ s.plagiarism_score }}% Similarity<br><strong>Matched URL:</strong> <a href='{{ s.matched_url }}' target='_blank' class='text-primary text-break'>{{ s.matched_url }}</a><br><br><strong>Original Text:</strong> <em class='text-muted small'>&quot;{{ s.matched_text }}&quot;</em>{% if s.explanation %}<br><br><span class='text-warning small'><strong>LLM Insight:</strong> {{ s.explanation }}</span>{% endif %}">{{ s.text }}</span>
+                            {% elif is_ai %}
+                                <span class="highlight-node highlight-ai" data-bs-toggle="popover" data-bs-html="true" data-bs-title="🤖 AI Generation Flag" data-bs-content="<strong>Score:</strong> {{ s.ai_score }}% Predictability<br><br><span class='text-muted small'>Sentence structure features heavily align with generative patterns.</span>{% if s.explanation %}<br><br><span class='text-warning small'><strong>LLM Insight:</strong> {{ s.explanation }}</span>{% endif %}">{{ s.text }}</span>
+                            {% else %}
+                                <span>{{ s.text }}</span>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-white">{{ content }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls & Sources Sidecards (Right) -->
+        <div class="col-xl-4">
+            <div class="d-flex flex-column gap-4">
+                <!-- Highlight Toggles Card -->
+                <div class="card border border-secondary p-4 rounded-4" style="background: rgba(18, 9, 13, 0.45);">
+                    <h5 class="fw-bold text-white mb-3" style="font-family: 'Space Grotesk', sans-serif;">
+                        <i class="bi bi-sliders2 me-2 text-primary"></i> Overlay Controls
+                    </h5>
+                    
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input bg-dark border-secondary" type="checkbox" id="togglePlagiarism" checked>
+                        <label class="form-check-label text-white fw-medium d-flex align-items-center gap-2" for="togglePlagiarism">
+                            <span class="legend-box bg-danger"></span> Plagiarism Highlights
+                        </label>
+                    </div>
+
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input bg-dark border-secondary" type="checkbox" id="toggleAi" checked>
+                        <label class="form-check-label text-white fw-medium d-flex align-items-center gap-2" for="toggleAi">
+                            <span class="legend-box bg-purple" style="background: #a855f7;"></span> AI Detection Highlights
+                        </label>
+                    </div>
+                    
+                    <small class="text-muted">Disable options to filter highlighted overlays in the document viewer pane.</small>
+                </div>
+
+                <!-- Matched Sources Card -->
+                <div class="card border border-secondary rounded-4 overflow-hidden" style="background: rgba(18, 9, 13, 0.45);">
+                    <div class="card-header bg-dark border-bottom border-secondary py-3 px-4">
+                        <h5 class="mb-0 fw-bold text-white" style="font-family: 'Space Grotesk', sans-serif;">
+                            <i class="bi bi-globe me-2 text-primary"></i> Verified Sources
+                        </h5>
+                    </div>
+                    <div class="card-body p-4" style="max-height: 300px; overflow-y: auto;">
+                        {% if scan_report and scan_report.matched_sources %}
+                            <div class="d-flex flex-column gap-3">
+                                {% for source in scan_report.matched_sources %}
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <a href="{{ source.url }}" target="_blank" class="text-primary text-decoration-none text-truncate fw-semibold small pe-2" style="max-width: 70%;" title="{{ source.url }}">
+                                            <i class="bi bi-link-45deg me-1"></i> {{ source.url | replace('https://', '') | replace('http://', '') | replace('www.', '') | truncate(35) }}
+                                        </a>
+                                        <span class="badge bg-dark border border-secondary text-white small">{{ source.avg_similarity }}% match</span>
+                                    </div>
+                                    <div class="progress bg-dark" style="height: 4px;">
+                                        <div class="progress-bar bg-danger dynamic-progress" role="progressbar" style="width: 0%;" data-progress="{{ source.avg_similarity }}"></div>
+                                    </div>
+                                    <small class="text-muted mt-0.5 d-block" style="font-size: 0.7rem;">Flagged matches: {{ source.match_count }} sentences</small>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4 text-muted small">
+                                <i class="bi bi-emoji-smile fs-4 d-block mb-1"></i>
+                                No external matches found online.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Highlighting Overlays */
+    .highlight-node {
+        border-radius: 4px;
+        padding: 2px 4px;
+        margin: 0 1px;
+        cursor: help;
+        transition: all 0.25s ease;
+    }
+    
+    .highlight-plagiarism {
+        background-color: rgba(239, 68, 68, 0.22);
+        border-bottom: 2.5px solid rgba(239, 68, 68, 0.9);
+        color: #fca5a5;
+    }
+    .highlight-plagiarism:hover {
+        background-color: rgba(239, 68, 68, 0.35);
+    }
+    
+    .highlight-ai {
+        background-color: rgba(168, 85, 247, 0.22);
+        border-bottom: 2.5px solid rgba(168, 85, 247, 0.9);
+        color: #d8b4fe;
+    }
+    .highlight-ai:hover {
+        background-color: rgba(168, 85, 247, 0.35);
+    }
+
+    .highlight-both {
+        background-color: rgba(236, 72, 153, 0.22);
+        border-bottom: 2.5px solid rgba(236, 72, 153, 0.9);
+        color: #fbcfe8;
+    }
+    .highlight-both:hover {
+        background-color: rgba(236, 72, 153, 0.35);
+    }
+
+    /* Hide styles when toggles checked off */
+    .hide-plagiarism .highlight-plagiarism {
+        background-color: transparent !important;
+        border-bottom: none !important;
+        color: inherit !important;
+        cursor: text !important;
+    }
+    
+    .hide-ai .highlight-ai {
+        background-color: transparent !important;
+        border-bottom: none !important;
+        color: inherit !important;
+        cursor: text !important;
+    }
+
+    .hide-plagiarism.hide-ai .highlight-both,
+    .hide-plagiarism .highlight-both {
+        background-color: rgba(168, 85, 247, 0.22) !important;
+        border-bottom: 2.5px solid rgba(168, 85, 247, 0.9) !important;
+        color: #d8b4fe !important;
+    }
+    
+    .hide-ai .highlight-both {
+        background-color: rgba(239, 68, 68, 0.22) !important;
+        border-bottom: 2.5px solid rgba(239, 68, 68, 0.9) !important;
+        color: #fca5a5 !important;
+    }
+    
+    .hide-plagiarism.hide-ai .highlight-both {
+        background-color: transparent !important;
+        border-bottom: none !important;
+        color: inherit !important;
+        cursor: text !important;
+    }
+
+    .legend-box {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border-radius: 4px;
+        vertical-align: middle;
+    }
+
+    /* Popover styles customize */
+    .popover {
+        --bs-popover-bg: #151c2c;
+        --bs-popover-border-color: rgba(255,255,255,0.12);
+        --bs-popover-header-bg: #0f172a;
+        --bs-popover-header-color: #ffffff;
+        --bs-popover-body-color: #cbd5e1;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        border-radius: 12px;
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Initialize Bootstrap Popovers
+        const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
+        const popoverList = [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl, {
+            trigger: 'click',
+            placement: 'top',
+            container: 'body'
+        }));
+
+        // Dismiss popovers on click outside
+        document.addEventListener('click', function (e) {
+            popoverTriggerList.forEach(function (el) {
+                if (!el.contains(e.target) && !document.querySelector('.popover')?.contains(e.target)) {
+                    bootstrap.Popover.getInstance(el)?.hide();
+                }
+            });
+        });
+
+        // Toggle Highlights Logic
+        const togglePlagInput = document.getElementById("togglePlagiarism");
+        const toggleAiInput = document.getElementById("toggleAi");
+        const textPane = document.querySelector(".text-viewer-pane");
+
+        function updateHighlights() {
+            if (!togglePlagInput.checked) {
+                textPane.classList.add("hide-plagiarism");
+            } else {
+                textPane.classList.remove("hide-plagiarism");
+            }
+
+            if (!toggleAiInput.checked) {
+                textPane.classList.add("hide-ai");
+            } else {
+                textPane.classList.remove("hide-ai");
+            }
+        }
+
+        togglePlagInput.addEventListener("change", updateHighlights);
+        toggleAiInput.addEventListener("change", updateHighlights);
+
+        // Animate circular progress rings dynamically
+        document.querySelectorAll('.dynamic-ring').forEach(function(circle) {
+            const progress = parseFloat(circle.getAttribute('data-progress')) || 0;
+            const circumference = 339.29;
+            const offset = circumference - (circumference * progress / 100);
+            
+            circle.style.strokeDasharray = circumference;
+            circle.style.strokeDashoffset = offset;
+            circle.style.transform = 'rotate(-90deg)';
+            circle.style.transformOrigin = '50% 50%';
+            circle.style.transition = 'stroke-dashoffset 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
+        });
+
+        // Animate horizontal progress bars dynamically
+        document.querySelectorAll('.dynamic-progress').forEach(function(bar) {
+            const progress = bar.getAttribute('data-progress') || 0;
+            bar.style.width = progress + '%';
+            bar.style.transition = 'width 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
+        });
+    });
+</script>
+{% endblock %}

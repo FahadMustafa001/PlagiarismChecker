@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ ApexAudit AI — Premium Plagiarism & AI Detector Console</title>
+    <meta name="description" content="ApexAudit AI is a professional-grade plagiarism detection and AI text analysis platform powered by Sentence-Transformers, Groq, and OpenRouter LLMs.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #030712;
+            --card-bg: rgba(10, 15, 30, 0.65);
+            --card-border: rgba(59, 130, 246, 0.18);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary-glow: #3b82f6;
+            --primary-gradient: linear-gradient(135deg, #93c5fd 0%, #3b82f6 50%, #1d4ed8 100%);
+            --accent-glow: #cbd5e1;
+            --accent-gradient: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 50%, #94a3b8 100%);
+            --success-glow: #0d9488;
+            --success-gradient: linear-gradient(135deg, #2dd4bf 0%, #0d9488 100%);
+            --glass-backdrop: blur(22px);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.1) 0px, transparent 40%),
+                radial-gradient(at 100% 0%, rgba(203, 213, 225, 0.12) 0px, transparent 45%),
+                radial-gradient(at 50% 100%, rgba(29, 78, 216, 0.08) 0px, transparent 50%);
+            background-attachment: fixed;
+            background-size: 200% 200%;
+            animation: driftGlow 25s ease infinite;
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        @keyframes driftGlow {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+
+        /* Modern Geometric Brand Logo */
+        .brand-logo-modern {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(168, 85, 247, 0.2) 100%);
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.25);
+            border: 1px solid rgba(6, 182, 212, 0.45);
+            transition: all 0.3s ease;
+        }
+        .brand-logo-modern::before {
+            content: '';
+            position: absolute;
+            width: 70%;
+            height: 70%;
+            border-radius: 50%;
+            border: 1.5px dashed var(--primary-glow);
+            animation: rotateLogoRing 12s linear infinite;
+        }
+        .logo-text-symbol {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: #ffffff;
+            z-index: 2;
+            text-shadow: 0 0 8px var(--primary-glow);
+        }
+        @keyframes rotateLogoRing {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Cohesive Component Style Overrides */
+        .card {
+            background-color: var(--card-bg) !important;
+            backdrop-filter: var(--glass-backdrop);
+            -webkit-backdrop-filter: var(--glass-backdrop);
+            border: 1px solid var(--card-border) !important;
+        }
+
+        .table {
+            --bs-table-bg: transparent !important;
+            color: var(--text-main) !important;
+        }
+
+        .table th, .table td {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+        }
+
+        .form-control, .form-select {
+            background-color: rgba(10, 15, 30, 0.6) !important;
+            border-color: rgba(59, 130, 246, 0.2) !important;
+            color: var(--text-main) !important;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: rgba(10, 15, 30, 0.8) !important;
+            border-color: var(--primary-glow) !important;
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.25) !important;
+        }
+
+        /* Customize Scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #030712;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.3);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.4);
+        }
+
+        /* Particle Grid Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image: 
+                radial-gradient(circle at 1px 1px, rgba(59, 130, 246, 0.08) 1px, transparent 0);
+            background-size: 35px 35px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Premium Glassmorphic Navbar */
+        .navbar-premium {
+            background: rgba(3, 7, 18, 0.75);
+            backdrop-filter: var(--glass-backdrop);
+            -webkit-backdrop-filter: var(--glass-backdrop);
+            border-bottom: 1px solid var(--card-border);
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-icon {
+            background: var(--primary-gradient);
+            box-shadow: 0 0 20px rgba(234, 179, 8, 0.4);
+            border-radius: 10px;
+        }
+
+        /* Glassmorphic Container Card */
+        .main-card-container {
+            background: var(--card-bg);
+            backdrop-filter: var(--glass-backdrop);
+            -webkit-backdrop-filter: var(--glass-backdrop);
+            border-radius: 23px; /* Slightly smaller than border card */
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Animated Conic Gradient Border Card */
+        .gradient-border-card {
+            position: relative;
+            background: rgba(13, 20, 38, 0.3);
+            border-radius: 24px;
+            padding: 1.5px; /* Border thickness */
+            overflow: hidden;
+            z-index: 1;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45);
+            animation: fadeInScale 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .gradient-border-card::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: conic-gradient(
+                from 0deg,
+                transparent 30%,
+                var(--primary-glow) 45%,
+                var(--accent-glow) 55%,
+                transparent 70%
+            );
+            animation: rotateGradient 6s linear infinite;
+            z-index: -2;
+            pointer-events: none;
+            opacity: 0.75;
+        }
+
+        .gradient-border-card::after {
+            content: '';
+            position: absolute;
+            inset: 1.5px;
+            background: #030712;
+            border-radius: 23px;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        @keyframes rotateGradient {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.3); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.4); }
+
+        /* Toast Notifications */
+        .notification-toast-container {
+            position: fixed;
+            top: 24px; right: 24px;
+            z-index: 1080;
+            max-width: 400px;
+        }
+
+        .alert-premium {
+            background: rgba(10, 15, 30, 0.95);
+            border: 1px solid var(--card-border);
+            backdrop-filter: var(--glass-backdrop);
+            color: var(--text-main);
+            border-radius: 16px;
+            animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Form Inputs Premium Style */
+        .form-control, .form-select {
+            background-color: rgba(10, 15, 30, 0.65) !important;
+            border: 1px solid var(--card-border) !important;
+            color: #fff !important;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-glow) !important;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.25) !important;
+            background-color: rgba(10, 15, 30, 0.85) !important;
+        }
+
+        .input-group-text {
+            background-color: rgba(10, 15, 30, 0.75) !important;
+            border: 1px solid var(--card-border) !important;
+            color: var(--text-muted) !important;
+        }
+
+        /* ===== Micro-Animations ===== */
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from { transform: translateY(24px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes fadeInScale {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(234, 179, 8, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(234, 179, 8, 0.6); }
+        }
+
+        .animate-fade-in {
+            animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .animate-scale-in {
+            animation: fadeInScale 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Stagger animation utility */
+        .animate-stagger > * {
+            opacity: 0;
+            animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .animate-stagger > *:nth-child(1) { animation-delay: 0.05s; }
+        .animate-stagger > *:nth-child(2) { animation-delay: 0.10s; }
+        .animate-stagger > *:nth-child(3) { animation-delay: 0.15s; }
+        .animate-stagger > *:nth-child(4) { animation-delay: 0.20s; }
+        .animate-stagger > *:nth-child(5) { animation-delay: 0.25s; }
+        .animate-stagger > *:nth-child(6) { animation-delay: 0.30s; }
+
+        /* Hover effects */
+        .hover-lift {
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .hover-lift:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary-glow) !important;
+            box-shadow: 0 15px 35px rgba(234, 179, 8, 0.15);
+        }
+
+        /* Micro-interactions: Rotate card icons slightly on hover */
+        .hover-lift:hover i {
+            transform: scale(1.1) rotate(6deg);
+            color: var(--primary-glow) !important;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .hover-lift i {
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: inline-block;
+        }
+
+        /* Micro-interactions: Rotate Brand Logo on Navbar Hover */
+        .brand-icon i {
+            display: inline-block;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .navbar-brand:hover .brand-icon i {
+            transform: rotate(360deg) scale(1.1);
+        }
+
+        /* Buttons Hover Sheen Sweep */
+        .btn-glow {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+        .btn-glow::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.2),
+                transparent
+            );
+            transition: all 0.5s ease;
+        }
+        .btn-glow:hover::before {
+            left: 100%;
+        }
+        .btn-glow:hover {
+            animation: pulseGlow 1.5s infinite;
+        }
+
+        .text-glow-primary {
+            text-shadow: 0 0 10px rgba(234, 179, 8, 0.5);
+        }
+        .text-glow-accent {
+            text-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+        }
+        .text-glow-success {
+            text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+
+        /* Premium Progress Bars */
+        .progress-bar {
+            background-image: var(--primary-gradient) !important;
+            transition: width 1s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        }
+        .progress-bar.bg-success {
+            background-image: var(--success-gradient) !important;
+        }
+        .progress-bar.bg-warning {
+            background-image: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+        }
+        .progress-bar.bg-danger {
+            background-image: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+        }
+
+        /* Premium iOS-style 3D Tabs Slider */
+        .nav-tabs {
+            border-bottom: none !important;
+            background: rgba(13, 20, 38, 0.6) !important;
+            border-radius: 12px !important;
+            padding: 4px !important;
+            display: inline-flex !important;
+            width: fit-content !important;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.4) !important;
+            border: 1px solid var(--card-border) !important;
+            margin-bottom: 24px !important;
+        }
+        .nav-tabs .nav-item {
+            margin-bottom: 0 !important;
+        }
+        .nav-tabs .nav-link {
+            border: none !important;
+            border-radius: 8px !important;
+            padding: 8px 24px !important;
+            font-size: 0.9rem !important;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            color: var(--text-muted) !important;
+            background: transparent !important;
+        }
+        .nav-tabs .nav-link:hover {
+            color: var(--text-main) !important;
+        }
+        .nav-tabs .nav-link.active {
+            background: var(--primary-gradient) !important;
+            color: #fff !important;
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3) !important;
+            transform: translateZ(5px);
+        }
+
+        /* 3D Tab Pane Transition */
+        .tab-pane {
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            transform: translate3d(0, 15px, 0);
+            opacity: 0;
+        }
+        .tab-pane.show.active {
+            transform: translate3d(0, 0, 0);
+            opacity: 1;
+        }
+
+        /* Premium Footer */
+        .footer-premium {
+            background: rgba(12, 6, 8, 0.85);
+            backdrop-filter: var(--glass-backdrop);
+            border-top: 1px solid var(--card-border);
+            position: relative;
+            z-index: 1;
+        }
+
+        .tech-badge {
+            background: rgba(18, 9, 13, 0.8);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .tech-badge:hover {
+            border-color: var(--primary-glow);
+            color: #f8fafc;
+            transform: translateY(-1px);
+        }
+
+        /* Futuristic Scanner Overlay Styles */
+        #scannerOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 20000; /* Extra high z-index to stay on top of navbar and everything else */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .scanner-backdrop {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(4, 3, 15, 0.95);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+        }
+        .scanner-content {
+            position: relative;
+            z-index: 20001;
+        }
+        .scanner-grid {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border: 2px solid rgba(6, 182, 212, 0.35);
+            border-radius: 50%;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(11, 11, 28, 0.5);
+            box-shadow: 0 0 35px rgba(6, 182, 212, 0.25);
+            overflow: hidden;
+        }
+        .scanner-laser {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--primary-glow), transparent);
+            box-shadow: 0 0 15px var(--primary-glow);
+            animation: scan 2s linear infinite;
+        }
+        .scanner-core {
+            width: 80px;
+            height: 80px;
+            background: rgba(6, 182, 212, 0.12);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 1.5s ease-in-out infinite alternate;
+        }
+        @keyframes scan {
+            0% { top: 0%; }
+            50% { top: 100%; }
+            100% { top: 0%; }
+        }
+        @keyframes pulse {
+            from { transform: scale(0.9); opacity: 0.6; }
+            to { transform: scale(1.1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Futuristic Scanning Loader Overlay (Hidden by Default) -->
+<div id="scannerOverlay" class="d-none">
+    <div class="scanner-backdrop"></div>
+    <div class="scanner-content text-center">
+        <!-- Glowing Scanner -->
+        <div class="scanner-grid mb-4">
+            <div class="scanner-laser"></div>
+            <div class="scanner-core">
+                <i class="bi bi-cpu fs-1 text-white"></i>
+            </div>
+        </div>
+        
+        <h4 class="fw-bold text-white mb-2" style="font-family: 'Space Grotesk', sans-serif;">Initializing Deep Audit</h4>
+        <p class="text-primary fw-medium small mb-4" id="scannerStatus">Starting parsing node...</p>
+        
+        <!-- Steps Progress Bar -->
+        <div class="progress bg-dark border border-secondary mx-auto mb-4" style="height: 6px; max-width: 320px;">
+            <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" id="scannerProgress" role="progressbar" style="width: 15%"></div>
+        </div>
+
+        <div class="text-muted small" style="max-width: 450px;">
+            Please do not close this window. The server is downloading neural vectors and scraping web nodes to guarantee 100% accuracy.
+        </div>
+    </div>
+</div>
+
+<nav class="navbar navbar-expand-lg navbar-premium sticky-top py-3">
+    <div class="container">
+        <a class="navbar-brand text-white d-flex align-items-center gap-2" href="/">
+            <div class="brand-logo-modern">
+                <span class="logo-text-symbol">α</span>
+            </div>
+            <span class="fs-4">ApexAudit <span class="text-primary text-glow-primary">AI</span></span>
+        </a>
+        
+        {% if session.get('user_id') %}
+        <div class="d-flex align-items-center gap-3">
+            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 d-none d-sm-inline-flex align-items-center gap-1.5 small">
+                <span class="spinner-grow spinner-grow-sm text-success" role="status" style="width: 8px; height: 8px;"></span>
+                Secure Node Connected
+            </span>
+            <div class="dropdown">
+                <button class="btn btn-dark border border-secondary btn-sm dropdown-toggle fw-semibold px-3 py-2 rounded-pill text-white shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-circle me-1 text-primary"></i> {{ session.get('username') }}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark shadow-lg border border-secondary mt-2 rounded-3">
+                    <li><a class="dropdown-item py-2" href="{{ url_for('view_assignments') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                    <li><a class="dropdown-item py-2" href="{{ url_for('upload_assignment') }}"><i class="bi bi-cloud-upload me-2"></i>New Scan</a></li>
+                    <li><a class="dropdown-item py-2" href="{{ url_for('about') }}"><i class="bi bi-info-circle me-2"></i>About</a></li>
+                    <li><hr class="dropdown-divider border-secondary"></li>
+                    <li><a class="dropdown-item text-danger py-2" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
+                </ul>
+            </div>
+        </div>
+        {% else %}
+        <div class="d-flex align-items-center gap-2">
+            <a href="{{ url_for('about') }}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1.5 fw-medium">
+                <i class="bi bi-info-circle me-1"></i>About
+            </a>
+            <a href="{{ url_for('login') }}" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1.5 fw-medium">
+                <i class="bi bi-box-arrow-in-right me-1"></i>Sign In
+            </a>
+            <a href="{{ url_for('register') }}" class="btn btn-sm btn-primary rounded-pill px-3 py-1.5 fw-medium" style="background: var(--primary-gradient); border: none;">
+                <i class="bi bi-person-plus me-1"></i>Register
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</nav>
+
+<div class="notification-toast-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-premium alert-dismissible fade show shadow-lg py-3 pe-5" role="alert">
+            <div class="d-flex align-items-center gap-2.5">
+                <div class="p-2 {% if category == 'danger' %}bg-danger-subtle text-danger{% else %}bg-success-subtle text-success{% endif %} rounded-3">
+                    <i class="bi {% if category == 'danger' %}bi-exclamation-triangle-fill{% else %}bi-check-circle-fill{% endif %} fs-5"></i>
+                </div>
+                <div>{{ message }}</div>
+            </div>
+            <button type="button" class="btn-close btn-close-white shadow-none top-50 translate-middle-y me-2" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+</div>
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="gradient-border-card tilt-3d">
+                <div class="main-card-container p-4 p-md-5">
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Premium Footer -->
+<footer class="footer-premium py-4 mt-5">
+    <div class="container">
+        <div class="row align-items-center g-3">
+            <div class="col-md-4">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="brand-icon text-white p-1.5 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; border-radius: 7px;">
+                        <i class="bi bi-cpu-fill small"></i>
+                    </div>
+                    <span class="fw-bold text-white small" style="font-family: 'Space Grotesk', sans-serif;">ApexAudit AI</span>
+                    <span class="text-muted small">v2.0</span>
+                </div>
+                <p class="text-muted small mb-0 mt-1" style="font-size: 0.72rem;">Professional Academic Integrity Analysis Platform</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <span class="tech-badge"><i class="bi bi-filetype-py"></i> Python</span>
+                    <span class="tech-badge"><i class="bi bi-lightning-fill"></i> Flask</span>
+                    <span class="tech-badge"><i class="bi bi-cpu"></i> S-BERT</span>
+                    <span class="tech-badge"><i class="bi bi-bar-chart-fill"></i> Chart.js</span>
+                    <span class="tech-badge"><i class="bi bi-cloud"></i> Groq</span>
+                </div>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <p class="text-muted small mb-0" style="font-size: 0.72rem;">© 2026 ApexAudit AI. All rights reserved.</p>
+                <a href="{{ url_for('about') }}" class="text-primary text-decoration-none small" style="font-size: 0.72rem;">Learn more →</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const tiltElements = document.querySelectorAll('.tilt-3d');
+    tiltElements.forEach(el => {
+        el.style.transformStyle = 'preserve-3d';
+        el.style.transition = 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
+        
+        el.addEventListener('mousemove', (e) => {
+            const rect = el.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const xc = rect.width / 2;
+            const yc = rect.height / 2;
+            const dx = x - xc;
+            const dy = y - yc;
+            
+            // Limit tilt intensity (max 4.5 degrees) for professionalism
+            const maxTilt = 4.5;
+            const tiltX = (dy / yc) * -maxTilt;
+            const tiltY = (dx / xc) * maxTilt;
+            
+            el.style.transition = 'none';
+            el.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) translateZ(10px)`;
+        });
+        
+        el.addEventListener('mouseleave', () => {
+            el.style.transition = 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
+            el.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0)';
+        });
+    });
+});
+</script>
+</body>
+</html>
