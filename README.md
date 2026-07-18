@@ -128,7 +128,7 @@ python app.py
 ```
 Open **[http://127.0.0.1:5000](http://127.0.0.1:5000)** in your browser.
 
----
+
 
 ## 🧪 Running Integrity Audits (Diagnostics)
 To verify that all backend engines, database schemas, and LLM routes are properly configured, run the test script:
